@@ -178,6 +178,12 @@ Same as history4feed, but also includes:
 
 * will only ever return results for feed ids users are subscribed to
 
+#### GET Posts (XML)
+
+Same as history4feed, but also includes:
+
+* will only ever return results for feed ids users are subscribed to
+
 #### GET Jobs
 
 Same as history4feed, but also includes:
