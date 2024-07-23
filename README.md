@@ -10,6 +10,12 @@ High level mockups and designs can be found here: https://miro.com/app/board/uXj
 
 ## Enhancements over history4feed
 
+### Introduce outside services
+
+* Auth0: Users and Roles
+* Stripe: Payments and Subscriptions
+* Send In Blue: Mailing list
+
 ### Introduce Authentication and Users (Customers)
 
 Anyone can sign up to history4feed Web.
@@ -20,17 +26,22 @@ A user must confirm their email before being granted access to the web app. They
 
 This is managed by Auth0: https://auth0.com/docs/manage-users/user-accounts/verify-emails
 
+On sign up user can opt into mailing list (Send in Blue), this is managed by Auth0 on sign up (https://auth0.com/blog/using-auth0-to-collect-consent-for-newsletter-signups/) (user who marks as false, is added to list as unsubscribed), and managed directly in the web app with send in blue (my account).
+
 A user can change their email at any time: https://community.auth0.com/t/let-users-change-their-email-address/109271 . However, they must confirm email verification before history4feed Web treats is at their email (they can resend verification at anytime)
 
 A user can change their password at anytime: https://auth0.com/docs/authenticate/database-connections/password-change (if 2fa enabled, they must enter code)
 
 All users can optionally enable 2FA at anytime in Auth0: https://auth0.com/docs/secure/multi-factor-authentication (use device codes only, not SMS)
 
-A user can delete their account. This will
+A user can delete their account. This will:
 
-* delete history4feed web data (account will remain in Auth0, customer will remain in Stripe, but all h4f web data will be removed and all subscriptions to products will be cancelled in Stripe) 
+* delete history4feed web data
+* cancel any h4f Stripe subsciptions, and delete the Stripe customer (delete only happens if no other DOGESEC subscriptions exist)
+* delete any h4f Auth0 permissions and delete the Auth0 customer (deletion of Auth0 happens if no other DOGESEC subscriptions exist)
+* delete customer from h4f mailing list (Send in Blue), if subscribed
 
-### Introduce permissions, products, product subscriptions and payments
+### Introduce products, product subscriptions and payments
 
 Almost all of this logic can be handled by Stripe because our subscription/customer/product is very typical of SaaS products.
 
@@ -77,11 +88,17 @@ We need to add afew extra attibutes into dj-stripe for products:
 * is_visible_in_ui (boolean): defines if selectable in the UI. Useful for hiding old products/custom products from users in UI
 * is_archive (boolean): defines if product is archive (also useful for managing old products)
 
-To charge users we have a simple pricing model. A user subscribes to a product based on the number of feeds they want to describe to. This defined as a permissions.
+### Introduce roles
 
-Permissions are super simple at this point in time (although might be extended in the future). They define the number of feeds a user can access.
+To charge users we have a simple pricing model. A user subscribes to a product based on the number of feeds they want to describe to. This defined as a role.
 
-A staff user can define permissions in the staff interface and assign them to products. A product must have at least one permission.
+Roles are manages in Auth0: https://auth0.com/docs/manage-users/access-control/configure-core-rbac/rbac-users/assign-roles-to-users
+
+When user changes Products, the roles linked to them in Auth0 are updated accordingly.
+
+Roles are super simple at this point in time (although might be extended in the future). They define the number of feeds a user can access.
+
+A product must have one Role and only one Role.
 
 ### Introduce feed subscriptions
 
@@ -105,13 +122,15 @@ Schedules can be set on a per feed level. The schedule will define when queries 
 
 Note, in history4feed Web a user cannot run requests to this endpoint directly and must wait for the default schedule to run.
 
-## API
+## Public API
+
+A user sees a similar version to the backend API, with some minor changes (and addition of one endpoint).
 
 ### Authentication
 
 All queries to the API require authentication.
 
-Authentication defines the permissions of the user, and thus the data that can be returned to them.
+Authentication defines the Role of the user, and thus the data that can be returned to them.
 
 All requests require an `X-API-Key` in the header (unless otherwise stated). User API keys can be generated in the user interface.
 
@@ -159,12 +178,6 @@ Same as history4feed, but also includes:
 
 * will only ever return results for feed ids users are subscribed to
 
-#### GET Posts (XML)
-
-Same as history4feed, but also includes:
-
-* will only ever return results for feed ids users are subscribed to
-
 #### GET Jobs
 
 Same as history4feed, but also includes:
@@ -181,4 +194,6 @@ Same as history4feed, but also includes:
 
 This repository stores keys in Github.
 
-It is deployed via docker.
+It uses Github actions to deploy automatically.
+
+It is deployed using docker.
