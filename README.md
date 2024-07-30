@@ -196,10 +196,35 @@ Same as history4feed, but also includes:
 
 * will only ever return results for feed ids users are subscribed to
 
+## Django Staff Area
+
+The Django Staff authentication is also managed by Auth0.
+
+In the Django Staff area the following functions are available to Staff user
+
+* manage customers
+	* view user email / is verified in auth0 / if 2fa configured  (shows auth0 info dynamically)
+	* manage feed subscriptions (add / remove feeds they are subscribe to)
+	* view current subscription (shows stripe info dynamically)
+	* change product subscription
+* manage products
+	* add / remove products from strips
+	* set visibility / default settings for products
+* manage feeds
+	* delete feed
+	* view posts
+
 ## CI/CD
 
 This repository stores keys in Github.
 
 It uses Github actions to deploy automatically.
 
-It is deployed using docker.
+It is deployed using docker. Should import history4feed backend dynamically (fixed branch), so updates to history4feed code can be pulled dynamically into the web version as required.
+
+## Run time modes
+
+At runtime, user should be able to specify run-mode either
+
+* Cloud: will require connection to Stripe, and permissions will be implemented on a per-user level
+* On-prem: will run app without payments or newsletter variables. All users will have unlimited permissions to add feeds. Will still require Auth0 logins (but no mailing list connection).
