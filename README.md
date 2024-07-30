@@ -213,6 +213,8 @@ In the Django Staff area the following functions are available to Staff user
 * manage feeds
 	* delete feed
 	* view posts
+	* view job data related to feed
+	* manage feed cron times
 
 ## CI/CD
 
@@ -221,6 +223,8 @@ This repository stores keys in Github.
 It uses Github actions to deploy automatically.
 
 It is deployed using docker. Should import history4feed backend dynamically (fixed branch), so updates to history4feed code can be pulled dynamically into the web version as required.
+
+Note, history4feed core `.env` variables should all be passed using Github keys into the history4feed docker container. 
 
 ## Run time modes
 
